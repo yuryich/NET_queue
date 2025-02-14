@@ -2,17 +2,15 @@
 #include <vector>
 #include <thread>
 #include <chrono>
-#include <algorithm>
+#include <iomanip>
 
-// Функция для сложения частей векторов
 void vector_addition(const std::vector<int>& a, const std::vector<int>& b, std::vector<int>& result, int start, int end) {
 	for (int i = start; i < end; ++i) {
 		result[i] = a[i] + b[i];
 	}
 }
 
-// Функция для запуска тестов с разным числом потоков
-void run_test(int num_threads, int size) {
+double run_test(int num_threads, int size) {
 	std::vector<int> a(size, 1);
 	std::vector<int> b(size, 2);
 	std::vector<int> result(size);
@@ -34,22 +32,29 @@ void run_test(int num_threads, int size) {
 
 	auto end_time = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> elapsed = end_time - start_time;
-
-	std::cout << num_threads << " потоков: " << elapsed.count() << "s\n";
+	return elapsed.count();
 }
 
 int main() {
 	setlocale(LC_ALL, "RUS");
-	std::cout << "Количество аппаратных ядер: " << std::thread::hardware_concurrency() << "\n\n";
+	std::cout << "Количество аппаратных ядер - " << std::thread::hardware_concurrency() << "\n\n";
+
 	std::vector<int> sizes = { 1000, 10000, 100000, 1000000 };
 	std::vector<int> thread_counts = { 1, 2, 4, 8, 16 };
 
+	std::cout << std::setw(12) << " ";
 	for (int size : sizes) {
-		std::cout << "Размер массива: " << size << "\n";
-		for (int threads : thread_counts) {
-			run_test(threads, size);
+		std::cout << std::setw(10) << size;
+	}
+	std::cout << "\n";
+
+	for (int threads : thread_counts) {
+		std::cout << std::setw(2) << threads << " потоков ";
+		for (int size : sizes) {
+			double time = run_test(threads, size);
+			std::cout << std::setw(10) << std::fixed << std::setprecision(6) << time << "s";
 		}
-		std::cout << "-----------------------------\n";
+		std::cout << "\n";
 	}
 
 	return 0;
